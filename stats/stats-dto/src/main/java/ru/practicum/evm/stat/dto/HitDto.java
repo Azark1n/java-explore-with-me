@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class HitDto {
-    interface Create {};
+    interface Create {}
 
     @Null(groups = {Create.class})
     Long id;

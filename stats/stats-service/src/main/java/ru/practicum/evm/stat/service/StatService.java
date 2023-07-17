@@ -1,6 +1,5 @@
 package ru.practicum.evm.stat.service;
 
-import org.springframework.http.ResponseEntity;
 import ru.practicum.evm.stat.dto.HitDto;
 import ru.practicum.evm.stat.dto.StatsDto;
 

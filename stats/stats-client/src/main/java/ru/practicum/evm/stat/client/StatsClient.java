@@ -27,7 +27,7 @@ public class StatsClient {
 
     private static final String HIT_PREFIX = "/hit";
     private static final String STATS_PREFIX = "/stats";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     public StatsClient(@Value("${stats-server.url}") String baseStatsServerUrl, RestTemplateBuilder builder) {
