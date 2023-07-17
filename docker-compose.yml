@@ -1,5 +1,29 @@
 version: '3.8'
 services:
+  main-server:
+    build: main-service
+    image: main-service_image
+    container_name: main-service
+    depends_on:
+      - main-db
+      - stats-server
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/evm
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+
+  main-db:
+    image: postgres:15-alpine
+    container_name: main-db-postgress
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_DB=evm
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+
   stats-server:
     build: stats/stats-service
     image: stats-service_image
@@ -17,7 +41,7 @@ services:
     image: postgres:15-alpine
     container_name: stats-db-postgress
     ports:
-      - "6541:5432"
+      - "6542:5432"
     environment:
       - POSTGRES_DB=stats
       - POSTGRES_USER=root
