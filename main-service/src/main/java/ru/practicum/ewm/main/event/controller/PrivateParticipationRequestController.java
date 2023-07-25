@@ -20,13 +20,6 @@ import java.util.List;
 public class PrivateParticipationRequestController {
     private final ParticipationRequestService service;
 
-    @GetMapping("/requests")
-    public ResponseEntity<List<ParticipationRequestDto>> getParticipationRequestsByUserId(@PathVariable Long userId) {
-        List<ParticipationRequestDto> result = service.getParticipationRequestsByUserId(userId);
-
-        return ResponseEntity.ok(result);
-    }
-
     @PostMapping("/requests")
     public ResponseEntity<ParticipationRequestDto> addParticipationRequest(@PathVariable Long userId, @RequestParam @NotNull @Min(1) Long eventId) {
         ParticipationRequestDto result = service.addParticipationRequest(userId, eventId);
@@ -44,6 +37,13 @@ public class PrivateParticipationRequestController {
     @GetMapping("/events/{eventId}/requests")
     public ResponseEntity<List<ParticipationRequestDto>> getEventParticipationRequests(@PathVariable Long userId, @PathVariable Long eventId) {
         List<ParticipationRequestDto> result = service.getEventParticipationRequests(userId, eventId);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/requests")
+    public ResponseEntity<List<ParticipationRequestDto>> getParticipationRequestsByUserId(@PathVariable Long userId) {
+        List<ParticipationRequestDto> result = service.getParticipationRequestsByUserId(userId);
 
         return ResponseEntity.ok(result);
     }

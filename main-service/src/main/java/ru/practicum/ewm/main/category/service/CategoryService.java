@@ -10,9 +10,9 @@ public interface CategoryService {
 
     void deleteById(Long catId);
 
-    CategoryDto patch(Long catId, CategoryDto patch);
-
     List<CategoryDto> getAll(Integer from, Integer size);
 
     CategoryDto getById(Long catId);
+
+    CategoryDto patch(Long catId, CategoryDto patch);
 }

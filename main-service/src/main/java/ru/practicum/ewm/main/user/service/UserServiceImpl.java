@@ -22,6 +22,21 @@ public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
 
     @Override
+    public UserDto create(NewUserRequest newUserRequest) {
+        log.info("Create new user: {}", newUserRequest);
+
+        User user = mapper.toEntity(newUserRequest);
+        return mapper.toDto(repository.save(user));
+    }
+
+    @Override
+    public void deleteById(Long userId) {
+        log.info("Delete user by id: {}", userId);
+
+        repository.deleteById(userId);
+    }
+
+    @Override
     public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
         log.info("Get users by id: {}", ids);
 
@@ -41,20 +56,5 @@ public class UserServiceImpl implements UserService {
         return repository.findAll(pageable).stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public UserDto create(NewUserRequest newUserRequest) {
-        log.info("Create new user: {}", newUserRequest);
-
-        User user = mapper.toEntity(newUserRequest);
-        return mapper.toDto(repository.save(user));
-    }
-
-    @Override
-    public void deleteById(Long userId) {
-        log.info("Delete user by id: {}", userId);
-
-        repository.deleteById(userId);
     }
 }

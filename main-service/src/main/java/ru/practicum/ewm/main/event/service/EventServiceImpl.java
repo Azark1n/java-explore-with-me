@@ -50,6 +50,85 @@ public class EventServiceImpl implements EventService {
     private String viewStatUrl;
 
     @Override
+    public EventFullDto addEvent(Long userId, NewEventDto newEventDto) {
+        Category category = categoryRepository.findById(newEventDto.getCategory()).orElseThrow(
+                () -> new NotFoundException(String.format("Category not found. catId = %d", newEventDto.getCategory())));
+
+        User initiator = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("User not found. userId = %d", userId)));
+
+        checkNewEventDate(newEventDto.getEventDate(), LocalDateTime.now().plusHours(2));
+
+        EventState state = EventState.PENDING;
+
+        log.info("Add event. userid = {}, state = {}, {}", userId, state, newEventDto);
+
+        Event saved = eventRepository.save(mapper.toEntity(newEventDto, category, LocalDateTime.now(), initiator, state));
+
+        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
+        Long viewsCount = getViewCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
+
+        return mapper.toFullDto(saved, confirmedRequestsCount, viewsCount);
+    }
+
+    @Override
+    public List<EventFullDto> getAdminEvents(List<Long> users, List<EventState> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
+        log.info("Get admin events by param: users={}, states = {}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}", users, states, categories, rangeStart, rangeEnd, from, size);
+
+        checkStartIsBeforeEnd(rangeStart, rangeEnd);
+
+        PageRequest pageRequest = PageRequest.of(from / size, size);
+        Page<Event> result = eventRepository.findAll(((root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (users != null && !users.isEmpty()) {
+                predicates.add(root.get("initiator").in(users));
+            }
+            if (states != null && !states.isEmpty()) {
+                predicates.add(root.get("state").in(states));
+            }
+            if (categories != null && !categories.isEmpty()) {
+                predicates.add(root.get("category").in(categories));
+            }
+            if (rangeStart != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), rangeStart));
+            }
+            if (rangeEnd != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), rangeEnd));
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        }), pageRequest);
+
+        Map<Long, Long> confirmedRequests = getConfirmedRequestCounts(result.toList());
+        Map<Long, Long> viewCounts = getViewCounts(result.toList());
+
+        return result.stream()
+                .map(event -> mapper.toFullDto(event, confirmedRequests.getOrDefault(event.getId(), 0L), viewCounts.getOrDefault(event.getId(), 0L)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Long, Long> getConfirmedRequestCounts(List<Event> events) {
+        Map<Long, Long> confirmedRequests = new HashMap<>();
+        prRepository.getCountRequestsEqualStatusAndEventIn(ParticipationRequestState.CONFIRMED, events)
+                .forEach(element -> confirmedRequests.put((Long) element[0], (Long) element[1]));
+        return confirmedRequests;
+    }
+
+    @Override
+    public EventFullDto getEvent(Long id) {
+        log.info("Get event by id = {}", id);
+
+        Event result = eventRepository.findByIdAndState(id, EventState.PUBLISHED).orElseThrow(
+                () -> new NotFoundException(String.format("Event not found. eventId = %d", id)));
+
+        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(result)).get(result.getId());
+        Long viewsCount = getViewCounts(List.of(result)).get(result.getId());
+
+        return mapper.toFullDto(result, confirmedRequestsCount, viewsCount);
+    }
+
+    @Override
     public List<EventShortDto> getEvents(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, EventSortType sort, Integer from, Integer size) {
         log.info("Get events by param: text={}, categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, from={}, size={}, sort={}", text, categories, paid, rangeStart, rangeEnd, onlyAvailable, from, size, sort);
 
@@ -96,6 +175,22 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventFullDto getUserEventById(Long userId, Long eventId, Integer from, Integer size) {
+        log.info("Get user event. userId = {}, eventId = {}", userId, eventId);
+
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("User not found. userId = %d", userId)));
+
+        Event result = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
+
+        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(result)).get(result.getId());
+        Long viewsCount = getViewCounts(List.of(result)).get(result.getId());
+
+        return mapper.toFullDto(result, confirmedRequestsCount, viewsCount);
+    }
+
+    @Override
     public List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size) {
         log.info("Get user events: userId={}, from={}, size={}", userId, from, size);
 
@@ -108,69 +203,74 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventFullDto> getAdminEvents(List<Long> users, List<EventState> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        log.info("Get admin events by param: users={}, states = {}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}", users, states, categories, rangeStart, rangeEnd, from, size);
+    public Map<Long, Long> getViewCounts(List<Event> events) {
+        Map<Long, Long> views = new HashMap<>();
 
-        checkStartIsBeforeEnd(rangeStart, rangeEnd);
+        Optional<LocalDateTime> minPublishedOn = events.stream()
+                .map(Event::getPublishedOn)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo);
 
-        PageRequest pageRequest = PageRequest.of(from / size, size);
-        Page<Event> result = eventRepository.findAll(((root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+        if (minPublishedOn.isPresent()) {
+            LocalDateTime start = minPublishedOn.get();
+            LocalDateTime end = LocalDateTime.now();
+            List<String> uris = events.stream()
+                    .map(Event::getId)
+                    .map(id -> (viewStatUrl + id))
+                    .collect(Collectors.toList());
 
-            if (users != null && !users.isEmpty()) {
-                predicates.add(root.get("initiator").in(users));
+            ResponseEntity<Object> response = statsClient.getStats(start, end, uris, true);
+            if (!HttpStatus.OK.equals(response.getStatusCode())) {
+                throw new StatsInternalException(String.format("Bad response status from stats-server. %s", response));
             }
-            if (states != null && !states.isEmpty()) {
-                predicates.add(root.get("state").in(states));
-            }
-            if (categories != null && !categories.isEmpty()) {
-                predicates.add(root.get("category").in(categories));
-            }
-            if (rangeStart != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), rangeStart));
-            }
-            if (rangeEnd != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), rangeEnd));
-            }
-            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
-        }), pageRequest);
 
-        Map<Long, Long> confirmedRequests = getConfirmedRequestCounts(result.toList());
-        Map<Long, Long> viewCounts = getViewCounts(result.toList());
+            List<StatsDto> stats;
+            try {
+                stats = Arrays.asList(objectMapper.readValue(objectMapper.writeValueAsString(response.getBody()), StatsDto[].class));
+            } catch (IOException exception) {
+                throw new StatsInternalException(String.format("Bad response body from stats-server. %s", exception.getMessage()));
+            }
 
-        return result.stream()
-                .map(event -> mapper.toFullDto(event, confirmedRequests.getOrDefault(event.getId(), 0L), viewCounts.getOrDefault(event.getId(), 0L)))
-                .collect(Collectors.toList());
+            stats.forEach(stat -> {
+                Long eventId = Long.parseLong(stat.getUri().split("/", 0)[2]);
+                views.put(eventId, views.getOrDefault(eventId, 0L) + stat.getHits());
+            });
+        }
+        return views;
     }
 
     @Override
-    public EventFullDto getEvent(Long id) {
-        log.info("Get event by id = {}", id);
+    public EventFullDto patchAdminEvent(Long eventId, UpdateEventAdminRequestDto patchDto) {
+        log.info("Patch event by admin. eventId = {}, {}", eventId, patchDto);
 
-        Event result = eventRepository.findByIdAndState(id, EventState.PUBLISHED).orElseThrow(
-                () -> new NotFoundException(String.format("Event not found. eventId = %d", id)));
+        checkNewEventDate(patchDto.getEventDate(), LocalDateTime.now().plusHours(1));
 
-        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(result)).get(result.getId());
-        Long viewsCount = getViewCounts(List.of(result)).get(result.getId());
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
 
-        return mapper.toFullDto(result, confirmedRequestsCount, viewsCount);
-    }
+        if (!event.getState().equals(EventState.PENDING)) {
+            throw new ForbiddenException(String.format("Forbidden to change state in event state: %s", event.getState()));
+        }
 
-    @Override
-    public EventFullDto addEvent(Long userId, NewEventDto newEventDto) {
-        Category category = categoryRepository.findById(newEventDto.getCategory()).orElseThrow(
-                () -> new NotFoundException(String.format("Category not found. catId = %d", newEventDto.getCategory())));
+        if (patchDto.getCategory() != null) {
+            Category category = categoryRepository.findById(patchDto.getCategory()).orElseThrow(
+                    () -> new NotFoundException(String.format("Category not found. catId = %d", patchDto.getCategory())));
+            event.setCategory(category);
+        }
 
-        User initiator = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException(String.format("User not found. userId = %d", userId)));
+        if (patchDto.getStateAction() != null) {
+            switch (patchDto.getStateAction()) {
+                case PUBLISH_EVENT:
+                    event.setState(EventState.PUBLISHED);
+                    event.setPublishedOn(LocalDateTime.now());
+                    break;
+                case REJECT_EVENT:
+                    event.setState(EventState.REJECTED);
+                    break;
+            }
+        }
 
-        checkNewEventDate(newEventDto.getEventDate(), LocalDateTime.now().plusHours(2));
-
-        EventState state = EventState.PENDING;
-
-        log.info("Add event. userid = {}, state = {}, {}", userId, state, newEventDto);
-
-        Event saved = eventRepository.save(mapper.toEntity(newEventDto, category, LocalDateTime.now(), initiator, state));
+        Event saved = eventRepository.save(mapper.partialUpdate(patchDto, event));
 
         Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
         Long viewsCount = getViewCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
@@ -216,45 +316,6 @@ public class EventServiceImpl implements EventService {
         return mapper.toFullDto(saved, confirmedRequestsCount, viewsCount);
     }
 
-    @Override
-    public EventFullDto patchAdminEvent(Long eventId, UpdateEventAdminRequestDto patchDto) {
-        log.info("Patch event by admin. eventId = {}, {}", eventId, patchDto);
-
-        checkNewEventDate(patchDto.getEventDate(), LocalDateTime.now().plusHours(1));
-
-        Event event = eventRepository.findById(eventId).orElseThrow(
-                () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
-
-        if (!event.getState().equals(EventState.PENDING)) {
-            throw new ForbiddenException(String.format("Forbidden to change state in event state: %s", event.getState()));
-        }
-
-        if (patchDto.getCategory() != null) {
-            Category category = categoryRepository.findById(patchDto.getCategory()).orElseThrow(
-                    () -> new NotFoundException(String.format("Category not found. catId = %d", patchDto.getCategory())));
-            event.setCategory(category);
-        }
-
-        if (patchDto.getStateAction() != null) {
-            switch (patchDto.getStateAction()) {
-                case PUBLISH_EVENT:
-                    event.setState(EventState.PUBLISHED);
-                    event.setPublishedOn(LocalDateTime.now());
-                    break;
-                case REJECT_EVENT:
-                    event.setState(EventState.REJECTED);
-                    break;
-            }
-        }
-
-        Event saved = eventRepository.save(mapper.partialUpdate(patchDto, event));
-
-        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
-        Long viewsCount = getViewCounts(List.of(saved)).getOrDefault(saved.getId(), 0L);
-
-        return mapper.toFullDto(saved, confirmedRequestsCount, viewsCount);
-    }
-
     private void checkStartIsBeforeEnd(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
             throw new BadRequestException(String.format("Wrong interval: rangeStart = %s, rangeEnd = %s", rangeStart, rangeEnd));
@@ -265,65 +326,5 @@ public class EventServiceImpl implements EventService {
         if (newEventDate != null && newEventDate.isBefore(minTimeBeforeEventStart)) {
             throw new BadRequestException(String.format("eventDate should greater than: %s", newEventDate));
         }
-    }
-
-    @Override
-    public Map<Long, Long> getConfirmedRequestCounts(List<Event> events) {
-        Map<Long, Long> confirmedRequests = new HashMap<>();
-        prRepository.getCountRequestsEqualStatusAndEventIn(ParticipationRequestState.CONFIRMED, events)
-                .forEach(element -> confirmedRequests.put((Long) element[0], (Long) element[1]));
-        return confirmedRequests;
-    }
-
-    @Override
-    public EventFullDto getUserEventById(Long userId, Long eventId, Integer from, Integer size) {
-        log.info("Get user event. userId = {}, eventId = {}", userId, eventId);
-
-        userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException(String.format("User not found. userId = %d", userId)));
-
-        Event result = eventRepository.findById(eventId).orElseThrow(
-                () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
-
-        Long confirmedRequestsCount = getConfirmedRequestCounts(List.of(result)).get(result.getId());
-        Long viewsCount = getViewCounts(List.of(result)).get(result.getId());
-
-        return mapper.toFullDto(result, confirmedRequestsCount, viewsCount);
-    }
-
-    public Map<Long, Long> getViewCounts(List<Event> events) {
-        Map<Long, Long> views = new HashMap<>();
-
-        Optional<LocalDateTime> minPublishedOn = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo);
-
-        if (minPublishedOn.isPresent()) {
-            LocalDateTime start = minPublishedOn.get();
-            LocalDateTime end = LocalDateTime.now();
-            List<String> uris = events.stream()
-                    .map(Event::getId)
-                    .map(id -> (viewStatUrl + id))
-                    .collect(Collectors.toList());
-
-            ResponseEntity<Object> response = statsClient.getStats(start, end, uris, true);
-            if (!HttpStatus.OK.equals(response.getStatusCode())) {
-                throw new StatsInternalException(String.format("Bad response status from stats-server. %s", response));
-            }
-
-            List<StatsDto> stats;
-            try {
-                stats = Arrays.asList(objectMapper.readValue(objectMapper.writeValueAsString(response.getBody()), StatsDto[].class));
-            } catch (IOException exception) {
-                throw new StatsInternalException(String.format("Bad response body from stats-server. %s", exception.getMessage()));
-            }
-
-            stats.forEach(stat -> {
-                Long eventId = Long.parseLong(stat.getUri().split("/", 0)[2]);
-                views.put(eventId, views.getOrDefault(eventId, 0L) + stat.getHits());
-            });
-        }
-        return views;
     }
 }

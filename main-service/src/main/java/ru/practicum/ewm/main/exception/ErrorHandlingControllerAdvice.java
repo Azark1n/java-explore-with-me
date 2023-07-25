@@ -19,6 +19,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RestControllerAdvice
 public class ErrorHandlingControllerAdvice {
+    @ExceptionHandler({DataIntegrityViolationException.class, ForbiddenException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataIntegrityViolationException(final RuntimeException exception) {
+        log.error(exception.toString());
+        return new ApiError("Integrity constraint has been violated", exception, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleException(final RuntimeException exception) {
+        log.error("Error 400: {}", exception.getMessage(), exception);
+        return new ApiError("Unhandled exception", exception, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler({BadRequestException.class, MissingServletRequestParameterException.class, HttpMessageNotReadableException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError onBadRequestException(Exception e) {
+        log.error(e.toString());
+        return new ApiError("Request is incorrect", e, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError onConstraintValidationException(ConstraintViolationException e) {
@@ -41,13 +62,6 @@ public class ErrorHandlingControllerAdvice {
         return new ApiError(violationsInfo, e, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({BadRequestException.class, MissingServletRequestParameterException.class, HttpMessageNotReadableException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError onBadRequestException(Exception e) {
-        log.error(e.toString());
-        return new ApiError("Request is incorrect", e, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler({NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError onNotFoundException(RuntimeException e) {
@@ -60,19 +74,5 @@ public class ErrorHandlingControllerAdvice {
     public ApiError onStatsInternalException(RuntimeException e) {
         log.error(e.toString());
         return new ApiError("Stats problem", e, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler({DataIntegrityViolationException.class, ForbiddenException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDataIntegrityViolationException(final RuntimeException exception) {
-        log.error(exception.toString());
-        return new ApiError("Integrity constraint has been violated", exception, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleException(final RuntimeException exception) {
-        log.error("Error 400: {}", exception.getMessage(), exception);
-        return new ApiError("Unhandled exception", exception, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

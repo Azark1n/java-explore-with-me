@@ -39,18 +39,6 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto patch(Long catId, CategoryDto patch) {
-        log.info("Patch category with id = {}, patch data: {}", catId, patch);
-
-        Category category = repository.findById(catId).orElseThrow(
-                () -> new NotFoundException(String.format("Category not found. catId = %d", catId)));
-
-        Category patched = repository.save(mapper.partialUpdate(patch, category));
-
-        return mapper.toDto(patched);
-    }
-
-    @Override
     public List<CategoryDto> getAll(Integer from, Integer size) {
         log.info("Get all categories");
 
@@ -69,5 +57,17 @@ public class CategoryServiceImpl implements CategoryService {
                 () -> new NotFoundException(String.format("Category not found. catId = %d", catId)));
 
         return mapper.toDto(category);
+    }
+
+    @Override
+    public CategoryDto patch(Long catId, CategoryDto patch) {
+        log.info("Patch category with id = {}, patch data: {}", catId, patch);
+
+        Category category = repository.findById(catId).orElseThrow(
+                () -> new NotFoundException(String.format("Category not found. catId = %d", catId)));
+
+        Category patched = repository.save(mapper.partialUpdate(patch, category));
+
+        return mapper.toDto(patched);
     }
 }

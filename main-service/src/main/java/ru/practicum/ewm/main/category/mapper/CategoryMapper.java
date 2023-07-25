@@ -7,10 +7,10 @@ import ru.practicum.ewm.main.category.entity.Category;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CategoryMapper {
-    Category toEntity(NewCategoryDto newCategoryDto);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Category partialUpdate(CategoryDto categoryDto, @MappingTarget Category category);
 
     CategoryDto toDto(Category category);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Category partialUpdate(CategoryDto categoryDto, @MappingTarget Category category);
+    Category toEntity(NewCategoryDto newCategoryDto);
 }

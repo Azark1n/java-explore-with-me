@@ -80,14 +80,6 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
-    public List<ParticipationRequestDto> getParticipationRequestsByUserId(Long userId) {
-        log.info("Get participation requests. userId = {}", userId);
-
-        List<ParticipationRequest> result = repository.findByRequester_Id(userId);
-        return result.stream().map(mapper::toDto).collect(Collectors.toList());
-    }
-
-    @Override
     public ParticipationRequestDto cancelParticipationRequest(Long userId, Long requestId) {
         log.info("Cancel participation request. userId = {}, requestId = {}", userId, requestId);
 
@@ -116,6 +108,14 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         }
 
         List<ParticipationRequest> result = repository.findByEvent(event);
+        return result.stream().map(mapper::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getParticipationRequestsByUserId(Long userId) {
+        log.info("Get participation requests. userId = {}", userId);
+
+        List<ParticipationRequest> result = repository.findByRequester_Id(userId);
         return result.stream().map(mapper::toDto).collect(Collectors.toList());
     }
 

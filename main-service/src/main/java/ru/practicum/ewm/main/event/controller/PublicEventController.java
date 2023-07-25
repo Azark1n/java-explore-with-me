@@ -28,6 +28,15 @@ public class PublicEventController {
     @Value(value = "${app.name}")
     private String appName;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<EventFullDto> getEvent(@PathVariable @NotNull Long id, HttpServletRequest request) {
+        EventFullDto result = service.getEvent(id);
+
+        statsClient.addHit(appName, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
     @GetMapping
     public ResponseEntity<List<EventShortDto>> getEvents(@RequestParam(required = false) String text,
                                                          @RequestParam(required = false) List<Integer> categories,
@@ -41,15 +50,6 @@ public class PublicEventController {
                                                          HttpServletRequest request) {
 
         List<EventShortDto> result = service.getEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-
-        statsClient.addHit(appName, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
-
-        return ResponseEntity.status(HttpStatus.OK).body(result);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<EventFullDto> getEvent(@PathVariable @NotNull Long id, HttpServletRequest request) {
-        EventFullDto result = service.getEvent(id);
 
         statsClient.addHit(appName, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
 

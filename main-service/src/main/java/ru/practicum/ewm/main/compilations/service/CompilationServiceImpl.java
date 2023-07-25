@@ -29,33 +29,6 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationMapper mapper;
 
     @Override
-    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
-        log.info("Get compilations. pinned = {}", pinned);
-
-        Pageable pageable = PageRequest.of(from / size, size);
-
-        Page<Compilation> result;
-        if (pinned != null) {
-            result = repository.findByPinned(pinned, pageable);
-        } else {
-            result = repository.findAll(pageable);
-        }
-        return result.stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public CompilationDto getById(Long compId) {
-        log.info("Get compilation by id = {}", compId);
-
-        Compilation compilation = repository.findById(compId).orElseThrow(
-                () -> new NotFoundException(String.format("Compilation not found. compId = %d", compId)));
-
-        return mapper.toDto(compilation);
-    }
-
-    @Override
     public CompilationDto create(NewCompilationDto newCompilationDto) {
         log.info("Create new compilation: {}", newCompilationDto);
 
@@ -77,6 +50,33 @@ public class CompilationServiceImpl implements CompilationService {
                 () -> new NotFoundException(String.format("Compilation not found. compId = %d", compId)));
 
         repository.deleteById(compId);
+    }
+
+    @Override
+    public CompilationDto getById(Long compId) {
+        log.info("Get compilation by id = {}", compId);
+
+        Compilation compilation = repository.findById(compId).orElseThrow(
+                () -> new NotFoundException(String.format("Compilation not found. compId = %d", compId)));
+
+        return mapper.toDto(compilation);
+    }
+
+    @Override
+    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
+        log.info("Get compilations. pinned = {}", pinned);
+
+        Pageable pageable = PageRequest.of(from / size, size);
+
+        Page<Compilation> result;
+        if (pinned != null) {
+            result = repository.findByPinned(pinned, pageable);
+        } else {
+            result = repository.findAll(pageable);
+        }
+        return result.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -37,10 +37,8 @@ public class AdminEventController {
 
     @PatchMapping("/{eventId}")
     public ResponseEntity<EventFullDto> patchEvent(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminRequestDto patchDto) {
-//    public ResponseEntity<EventFullDto> patchEvent(@PathVariable Long eventId, @RequestBody Map<String,Object> patchDto) {
         EventFullDto result = service.patchAdminEvent(eventId, patchDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
-//        return null;
     }
 }

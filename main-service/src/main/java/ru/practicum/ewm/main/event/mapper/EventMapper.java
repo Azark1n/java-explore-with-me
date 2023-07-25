@@ -13,6 +13,14 @@ import java.time.LocalDateTime;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING, uses = {CategoryMapper.class, UserMapper.class, LocationMapper.class})
 public interface EventMapper {
+    @Mapping(target = "category", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Event partialUpdate(UpdateEventUserRequestDto patchDto, @MappingTarget Event event);
+
+    @Mapping(target = "category", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Event partialUpdate(UpdateEventAdminRequestDto patchDto, @MappingTarget Event event);
+
     @Mapping(target = "id", expression = "java(null)")
     @Mapping(target = "category", source = "category")
     Event toEntity(NewEventDto newEventDto, Category category, LocalDateTime createdOn, User initiator, EventState state);
@@ -22,12 +30,4 @@ public interface EventMapper {
     EventFullDto toFullDto(Event event, Long confirmedRequestsCount, Long viewsCount);
 
     EventShortDto toShortDto(Event event);
-
-    @Mapping(target = "category", ignore = true)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Event partialUpdate(UpdateEventUserRequestDto patchDto, @MappingTarget Event event);
-
-    @Mapping(target = "category", ignore = true)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Event partialUpdate(UpdateEventAdminRequestDto patchDto, @MappingTarget Event event);
 }

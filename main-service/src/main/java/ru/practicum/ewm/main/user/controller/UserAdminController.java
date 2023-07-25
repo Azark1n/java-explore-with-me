@@ -25,17 +25,17 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable Long userId) {
+        service.deleteById(userId);
+    }
+
     @GetMapping
     public ResponseEntity<List<UserDto>> getAll(@RequestParam(required = false) List<Long> ids,
                                                 @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
                                                 @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) {
         List<UserDto> result = ids == null ? service.getUsers(from, size) : service.getUsers(ids, from, size);
         return ResponseEntity.ok(result);
-    }
-
-    @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long userId) {
-        service.deleteById(userId);
     }
 }

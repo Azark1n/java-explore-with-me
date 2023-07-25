@@ -12,12 +12,12 @@ import java.util.List;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING, uses = EventMapper.class)
 public interface CompilationMapper {
-    @Mapping(target = "events", source = "events")
-    Compilation toEntity(NewCompilationDto newCompilationDto, List<Event> events);
-
-    CompilationDto toDto(Compilation compilation);
-
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "events", source = "events")
     Compilation partialUpdate(UpdateCompilationRequest compilationDto, @MappingTarget Compilation compilation, List<Event> events);
+
+    CompilationDto toDto(Compilation compilation);
+
+    @Mapping(target = "events", source = "events")
+    Compilation toEntity(NewCompilationDto newCompilationDto, List<Event> events);
 }

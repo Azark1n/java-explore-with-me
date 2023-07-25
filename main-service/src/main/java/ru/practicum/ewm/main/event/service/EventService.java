@@ -10,21 +10,23 @@ import java.util.List;
 import java.util.Map;
 
 public interface EventService {
-    List<EventShortDto> getEvents(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, EventSortType sort, Integer from, Integer size);
-
-    List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size);
+    EventFullDto addEvent(Long userId, NewEventDto newEventDto);
 
     List<EventFullDto> getAdminEvents(List<Long> users, List<EventState> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size);
 
+    Map<Long, Long> getConfirmedRequestCounts(List<Event> events);
+
     EventFullDto getEvent(Long id);
 
-    EventFullDto addEvent(Long userId, NewEventDto newEventDto);
+    List<EventShortDto> getEvents(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, EventSortType sort, Integer from, Integer size);
 
-    EventFullDto patchUserEvent(Long userId, Long eventId, UpdateEventUserRequestDto newEventDto);
+    EventFullDto getUserEventById(Long userId, Long eventId, Integer from, Integer size);
+
+    List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size);
+
+    Map<Long, Long> getViewCounts(List<Event> events);
 
     EventFullDto patchAdminEvent(Long eventId, UpdateEventAdminRequestDto newEventDto);
 
-    Map<Long, Long> getConfirmedRequestCounts(List<Event> events);
-
-    EventFullDto getUserEventById(Long userId, Long eventId, Integer from, Integer size);
+    EventFullDto patchUserEvent(Long userId, Long eventId, UpdateEventUserRequestDto newEventDto);
 }

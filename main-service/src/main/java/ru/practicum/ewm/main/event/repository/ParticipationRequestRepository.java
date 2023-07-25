@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
-    Optional<ParticipationRequest> findByEvent_IdAndRequester_Id(Long id, Long id1);
+    List<ParticipationRequest> findAllByIdIn(List<Long> requestIds);
 
     List<ParticipationRequest> findByEvent(Event event);
+
+    Optional<ParticipationRequest> findByEvent_IdAndRequester_Id(Long id, Long id1);
 
     List<ParticipationRequest> findByRequester_Id(Long id);
 
@@ -21,6 +23,4 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "from ParticipationRequest p where p.status = ?1 and p.event in ?2 " +
             "group by p.event.id")
     List<Object[]> getCountRequestsEqualStatusAndEventIn(ParticipationRequestState status, Collection<Event> events);
-
-    List<ParticipationRequest> findAllByIdIn(List<Long> requestIds);
 }

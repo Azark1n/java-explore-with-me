@@ -19,13 +19,11 @@ import java.util.List;
 public class PrivateEventController {
     private final EventService service;
 
-    @GetMapping
-    public ResponseEntity<List<EventShortDto>> getEvents(@PathVariable Long userId,
-                                                   @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                                   @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        List<EventShortDto> result = service.getUserEvents(userId, from, size);
+    @PostMapping
+    public ResponseEntity<EventFullDto> addEvent(@PathVariable Long userId, @RequestBody @Valid NewEventDto newEventDto) {
+        EventFullDto result = service.addEvent(userId, newEventDto);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @GetMapping("/{eventId}")
@@ -37,11 +35,13 @@ public class PrivateEventController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    @PostMapping
-    public ResponseEntity<EventFullDto> addEvent(@PathVariable Long userId, @RequestBody @Valid NewEventDto newEventDto) {
-        EventFullDto result = service.addEvent(userId, newEventDto);
+    @GetMapping
+    public ResponseEntity<List<EventShortDto>> getEvents(@PathVariable Long userId,
+                                                   @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                                   @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        List<EventShortDto> result = service.getUserEvents(userId, from, size);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PatchMapping("/{eventId}")
