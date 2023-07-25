@@ -10,7 +10,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/evm
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/ewm
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
 
@@ -20,7 +20,7 @@ services:
     ports:
       - "6541:5432"
     environment:
-      - POSTGRES_DB=evm
+      - POSTGRES_DB=ewm
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
 

@@ -1,0 +1,16 @@
+
+/compilations
+/admin/compilations
+
+
+/categories
+/admin/categories
+
+/admin/users
+
+/events
+/users/{userId}/events ?
+/admin/events
+/users/{userId}/requests ? exception
+/users/{userId}/events/{eventId}/requests
+
