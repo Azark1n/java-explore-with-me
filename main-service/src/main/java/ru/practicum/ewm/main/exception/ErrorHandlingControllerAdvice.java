@@ -29,7 +29,7 @@ public class ErrorHandlingControllerAdvice {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(final RuntimeException exception) {
-        log.error("Error 400: {}", exception.getMessage(), exception);
+        log.error("Error 500: {}", exception.getMessage(), exception);
         return new ApiError("Unhandled exception", exception, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
