@@ -1,10 +1,10 @@
-package ru.practicum.ewm.main.compilations.mapper;
+package ru.practicum.ewm.main.compilation.mapper;
 
 import org.mapstruct.*;
-import ru.practicum.ewm.main.compilations.dto.CompilationDto;
-import ru.practicum.ewm.main.compilations.dto.NewCompilationDto;
-import ru.practicum.ewm.main.compilations.dto.UpdateCompilationRequest;
-import ru.practicum.ewm.main.compilations.entity.Compilation;
+import ru.practicum.ewm.main.compilation.dto.CompilationDto;
+import ru.practicum.ewm.main.compilation.dto.NewCompilationDto;
+import ru.practicum.ewm.main.compilation.dto.UpdateCompilationRequest;
+import ru.practicum.ewm.main.compilation.entity.Compilation;
 import ru.practicum.ewm.main.event.entity.Event;
 import ru.practicum.ewm.main.event.mapper.EventMapper;
 

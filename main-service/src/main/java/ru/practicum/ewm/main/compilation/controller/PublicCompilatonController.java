@@ -1,10 +1,10 @@
-package ru.practicum.ewm.main.compilations.controller;
+package ru.practicum.ewm.main.compilation.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.main.compilations.dto.CompilationDto;
-import ru.practicum.ewm.main.compilations.service.CompilationService;
+import ru.practicum.ewm.main.compilation.dto.CompilationDto;
+import ru.practicum.ewm.main.compilation.service.CompilationService;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.practicum.ewm.main.compilations.dto;
+package ru.practicum.ewm.main.compilation.dto;
 
 import lombok.Builder;
 import lombok.Value;
