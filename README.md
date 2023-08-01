@@ -1,6 +1,12 @@
 # java-explore-with-me
 
-### Feature: comments
+Pull-request: [https://github.com/Azark1n/java-explore-with-me/pull/5](https://github.com/Azark1n/java-explore-with-me/pull/5)
+
+Postman-tests for feature Comments: [https://github.com/Azark1n/java-explore-with-me/blob/feature_comments/postman/feature.json](https://github.com/Azark1n/java-explore-with-me/blob/feature_comments/postman/feature.json)
+
+Swagger-spec for feature Comments and Main-service: [https://github.com/Azark1n/java-explore-with-me/blob/feature_comments/swagger/ewm-comments-feature-spec.json](https://github.com/Azark1n/java-explore-with-me/blob/feature_comments/swagger/ewm-comments-feature-spec.json)
+
+### Feature: Comments
 
 * Добавлять комментарии к событиям могут зарегистрированные пользователи
 * Комментарии события доступны списком с пагинацией по публичному эндпоинту
