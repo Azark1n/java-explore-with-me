@@ -53,15 +53,14 @@ public class CommentServiceImpl implements CommentService {
 
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException(String.format("User not found. userId = %d", userId)));
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            throw new ForbiddenException("You are banned");
+        }
 
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
         if (!EventState.PUBLISHED.equals(event.getState())) {
             throw new BadRequestException(String.format("Only published events can be commented. eventId = %d", eventId));
-        }
-
-        if (Boolean.TRUE.equals(user.getBanned())) {
-            throw new ForbiddenException("You are banned");
         }
 
         Comment comment = new Comment();

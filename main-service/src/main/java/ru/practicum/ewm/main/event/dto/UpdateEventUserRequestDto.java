@@ -1,8 +1,10 @@
 package ru.practicum.ewm.main.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.jackson.Jacksonized;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.main.CommonUtils;
@@ -12,6 +14,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Jacksonized
 @Value

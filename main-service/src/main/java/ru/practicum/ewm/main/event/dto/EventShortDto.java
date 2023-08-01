@@ -1,8 +1,10 @@
 package ru.practicum.ewm.main.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.jackson.Jacksonized;
 import ru.practicum.ewm.main.CommonUtils;
 import ru.practicum.ewm.main.category.dto.CategoryDto;
@@ -14,6 +16,7 @@ import javax.validation.constraints.Null;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Jacksonized
 @Value
