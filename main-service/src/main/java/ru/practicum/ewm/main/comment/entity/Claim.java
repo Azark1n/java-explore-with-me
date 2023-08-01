@@ -41,9 +41,4 @@ public class Claim {
 
     @Column(name = "allowed_on")
     LocalDateTime allowedOn;
-
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "allowed_author_id")
-    User allowedAuthor;
 }

@@ -24,4 +24,6 @@ public class NewUserRequest implements Serializable {
     @NotBlank
     @Length(min = 2, max = 250)
     String name;
+
+    Boolean banned;
 }

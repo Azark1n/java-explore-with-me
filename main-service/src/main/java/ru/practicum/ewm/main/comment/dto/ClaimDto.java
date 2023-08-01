@@ -1,8 +1,10 @@
 package ru.practicum.ewm.main.comment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
+import ru.practicum.ewm.main.CommonUtils;
 import ru.practicum.ewm.main.comment.common.ClaimState;
 import ru.practicum.ewm.main.user.dto.UserDto;
 
@@ -14,9 +16,16 @@ import java.time.LocalDateTime;
 @Value
 public class ClaimDto implements Serializable {
     Long id;
+
     UserDto author;
+
     Long commentId;
+
     ClaimState state;
+
+    @JsonFormat(pattern = CommonUtils.DATE_FORMAT)
+    LocalDateTime createdOn;
+
+    @JsonFormat(pattern = CommonUtils.DATE_FORMAT)
     LocalDateTime allowedOn;
-    UserDto allowedAuthor;
 }

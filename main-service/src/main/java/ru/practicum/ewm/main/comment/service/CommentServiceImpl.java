@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.comment.common.ClaimState;
 import ru.practicum.ewm.main.comment.dto.ClaimDto;
 import ru.practicum.ewm.main.comment.dto.CommentDto;
@@ -17,6 +18,7 @@ import ru.practicum.ewm.main.comment.mapper.ClaimMapper;
 import ru.practicum.ewm.main.comment.mapper.CommentMapper;
 import ru.practicum.ewm.main.comment.repository.ClaimRepository;
 import ru.practicum.ewm.main.comment.repository.CommentRepository;
+import ru.practicum.ewm.main.event.common.EventState;
 import ru.practicum.ewm.main.event.entity.Event;
 import ru.practicum.ewm.main.event.repository.EventRepository;
 import ru.practicum.ewm.main.exception.BadRequestException;
@@ -28,6 +30,7 @@ import ru.practicum.ewm.main.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,6 +56,9 @@ public class CommentServiceImpl implements CommentService {
 
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new NotFoundException(String.format("Event not found. eventId = %d", eventId)));
+        if (!EventState.PUBLISHED.equals(event.getState())) {
+            throw new BadRequestException(String.format("Only published events can be commented. eventId = %d", eventId));
+        }
 
         if (Boolean.TRUE.equals(user.getBanned())) {
             throw new ForbiddenException("You are banned");
@@ -81,6 +87,9 @@ public class CommentServiceImpl implements CommentService {
                 () -> new NotFoundException(String.format("Comment not found. commentId = %d", commentId)));
         if (!user.equals(comment.getAuthor())) {
             throw new ForbiddenException("You are not owner");
+        }
+        if (comment.getDeletedOn() != null) {
+            throw new BadRequestException("The comment was deleted");
         }
         if (LocalDateTime.now().isAfter(comment.getCreatedOn().plusSeconds(ALLOWED_EDITING_TIME_SEC))) {
             throw new ForbiddenException("Time to edit is over");
@@ -184,6 +193,9 @@ public class CommentServiceImpl implements CommentService {
         if (comment.getDeletedOn() != null) {
             throw new BadRequestException(String.format("Comment is deleted. commentId = %d", commentId));
         }
+        if (Objects.equals(comment.getAuthor(), user)) {
+            throw new ForbiddenException("It's your comment. Are you crazy?");
+        }
 
         Optional<Claim> optionalClaim = claimRepository.findByAuthorAndComment(user, comment);
         if (optionalClaim.isPresent()) {
@@ -194,6 +206,7 @@ public class CommentServiceImpl implements CommentService {
         claim.setAuthor(user);
         claim.setComment(comment);
         claim.setState(ClaimState.PENDING);
+        claim.setCreatedOn(LocalDateTime.now());
 
         return claimMapper.toDto(claimRepository.save(claim));
     }
@@ -202,7 +215,7 @@ public class CommentServiceImpl implements CommentService {
     public List<ClaimDto> getAdminClaims(@Nullable Long eventId, Boolean onlyPending, Integer from, Integer size) {
         log.info("Get admin claims. eventId = {}, onlyPending = {}", eventId, onlyPending);
 
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("CreatedOnDesc"));
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "CreatedOn"));
 
         List<Claim> claims;
 
@@ -225,6 +238,7 @@ public class CommentServiceImpl implements CommentService {
         return claims.stream().map(claimMapper::toDto).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public ClaimDto processClaim(Long claimId, ClaimState claimState) {
         log.info("Process claim. claimId = {}, claimState = {}", claimId, claimState);
@@ -240,6 +254,13 @@ public class CommentServiceImpl implements CommentService {
         }
 
         claim.setState(claimState);
+        claim.setAllowedOn(LocalDateTime.now());
+
+        if (ClaimState.APPROVED.equals(claimState)) {
+            Comment comment = claim.getComment();
+            comment.setDeletedOn(LocalDateTime.now());
+            repository.save(comment);
+        }
 
         return claimMapper.toDto(claimRepository.save(claim));
     }
