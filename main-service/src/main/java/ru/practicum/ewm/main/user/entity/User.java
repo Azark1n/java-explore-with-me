@@ -25,4 +25,7 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 250)
     String name;
+
+    @Column(name = "banned")
+    Boolean banned;
 }

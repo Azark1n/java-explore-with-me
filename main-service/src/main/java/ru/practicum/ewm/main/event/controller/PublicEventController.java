@@ -1,5 +1,7 @@
 package ru.practicum.ewm.main.event.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Tag(name = "Public: События", description = "Публичный API для работы с событиями")
 @RequiredArgsConstructor
 @RequestMapping("/events")
 @RestController
@@ -28,6 +31,7 @@ public class PublicEventController {
     @Value(value = "${app.name}")
     private String appName;
 
+    @Operation(summary = "Получение подробной информации об опубликованном событии по его идентификатору")
     @GetMapping("/{id}")
     public ResponseEntity<EventFullDto> getEvent(@PathVariable @NotNull Long id, HttpServletRequest request) {
         EventFullDto result = service.getEvent(id);
@@ -37,6 +41,7 @@ public class PublicEventController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    @Operation(summary = "Получение событий с возможностью фильтрации")
     @GetMapping
     public ResponseEntity<List<EventShortDto>> getEvents(@RequestParam(required = false) String text,
                                                          @RequestParam(required = false) List<Integer> categories,

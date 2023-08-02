@@ -1,4 +1,4 @@
-package ru.practicum.ewm.main.compilations.service;
+package ru.practicum.ewm.main.compilation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,12 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.main.compilations.dto.CompilationDto;
-import ru.practicum.ewm.main.compilations.dto.NewCompilationDto;
-import ru.practicum.ewm.main.compilations.dto.UpdateCompilationRequest;
-import ru.practicum.ewm.main.compilations.entity.Compilation;
-import ru.practicum.ewm.main.compilations.mapper.CompilationMapper;
-import ru.practicum.ewm.main.compilations.repository.CompilationRepository;
+import ru.practicum.ewm.main.compilation.dto.CompilationDto;
+import ru.practicum.ewm.main.compilation.dto.NewCompilationDto;
+import ru.practicum.ewm.main.compilation.dto.UpdateCompilationRequest;
+import ru.practicum.ewm.main.compilation.entity.Compilation;
+import ru.practicum.ewm.main.compilation.mapper.CompilationMapper;
+import ru.practicum.ewm.main.compilation.repository.CompilationRepository;
 import ru.practicum.ewm.main.event.entity.Event;
 import ru.practicum.ewm.main.event.repository.EventRepository;
 import ru.practicum.ewm.main.exception.NotFoundException;

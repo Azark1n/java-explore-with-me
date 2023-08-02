@@ -1,4 +1,4 @@
-package ru.practicum.ewm.main.compilations.entity;
+package ru.practicum.ewm.main.compilation.entity;
 
 import lombok.AccessLevel;
 import lombok.Getter;

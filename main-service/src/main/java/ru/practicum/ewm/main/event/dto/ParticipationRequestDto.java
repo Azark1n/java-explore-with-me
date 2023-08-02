@@ -1,7 +1,9 @@
 package ru.practicum.ewm.main.event.dto;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.jackson.Jacksonized;
 import ru.practicum.ewm.main.event.common.ParticipationRequestState;
 
@@ -11,6 +13,7 @@ import javax.validation.constraints.Null;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Jacksonized
 @Value

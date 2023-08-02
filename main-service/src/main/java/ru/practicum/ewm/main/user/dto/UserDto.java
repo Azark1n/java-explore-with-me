@@ -1,22 +1,21 @@
 package ru.practicum.ewm.main.user.dto;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.jackson.Jacksonized;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import java.io.Serializable;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Jacksonized
 @Value
 public class UserDto implements Serializable {
-    public interface Create {}
-
-    @Null(groups = Create.class)
     Long id;
 
     @NotNull
@@ -27,4 +26,6 @@ public class UserDto implements Serializable {
     @NotNull
     @NotEmpty
     String name;
+
+    Boolean banned;
 }

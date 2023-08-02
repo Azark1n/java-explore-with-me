@@ -1,13 +1,16 @@
-package ru.practicum.ewm.main.compilations.dto;
+package ru.practicum.ewm.main.compilation.dto;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.jackson.Jacksonized;
 import org.hibernate.validator.constraints.Length;
 
 import java.io.Serializable;
 import java.util.List;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Jacksonized
 @Value
