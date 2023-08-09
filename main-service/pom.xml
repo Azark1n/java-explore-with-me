@@ -117,6 +117,14 @@
                 <configuration>
                     <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
                 </configuration>
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>start</goal>-->
+<!--                            <goal>stop</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
             </plugin>
             <plugin>
                 <groupId>org.springdoc</groupId>
